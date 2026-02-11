@@ -22,54 +22,26 @@ git clone <your-repo-url>
 cd opsdock
 ```
 
-### 2. 配置环境变量
+### 2. 一键初始化启动
 
 ```bash
-# 复制环境变量模板
+# 方式一：使用一键初始化脚本（推荐）
+chmod +x init.sh
+./init.sh
+```
+
+脚本会自动：
+- 复制 `.env.example` 到 `.env`（如果不存在）
+- 创建数据目录
+- 检查端口占用
+- 启动所有 Docker 服务
+- 配置 MySQL 远程访问
+
+```bash
+# 方式二：手动部署
 cp .env.example .env
-
-# 编辑配置（可选，根据需要修改）
-vim .env
-```
-
-主要配置项：
-
-| 配置项 | 默认值 | 说明 |
-|--------|--------|------|
-| `DATA_DIR` | `/app/data` | 数据存储目录 |
-| `TZ` | `Asia/Shanghai` | 时区 |
-| `MYSQL_ROOT_PASSWORD` | `root` | MySQL root 密码 |
-| `POSTGRES_PASSWORD` | `postgres` | PostgreSQL 密码 |
-| `GRAFANA_ADMIN_PASSWORD` | `admin` | Grafana 管理员密码 |
-
-### 3. 创建数据目录
-
-```bash
-# 方式一：使用 Makefile 自动创建
 make mkdir
-
-# 方式二：手动创建
-mkdir -p /app/data/{mysql/{data,init},postgres/data,redis/data,nacos/{logs,data},prometheus/data,grafana/data}
-```
-
-### 4. 启动服务
-
-```bash
-# 启动所有服务
 make up
-
-# 或单独启动指定服务
-docker-compose up -d mysql redis
-```
-
-### 5. 验证服务
-
-```bash
-# 查看服务状态
-make health
-
-# 或
-docker-compose ps
 ```
 
 ---
@@ -204,10 +176,12 @@ opsdock/
 ├── .env.example          # 环境变量模板
 ├── .env                  # 环境变量（需创建）
 ├── Makefile              # 快速命令入口
+├── init.sh               # 一键初始化脚本
 ├── README.md             # 本文档
 ├── prometheus/
 │   ├── prometheus.yml    # Prometheus 配置
 │   └── rules/            # 告警规则（可选）
 └── mysql/
-    └── init/             # MySQL 初始化脚本（可选）
+    └── init/
+        └── 01-remote-access.sql  # MySQL 远程访问配置
 ```
