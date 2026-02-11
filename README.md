@@ -117,12 +117,21 @@ make up
 
 ### MySQL 初始化脚本
 
-将 SQL 脚本放入 `mysql/init/` 目录，容器启动时会自动执行：
+将 SQL 脚本放入 `mysql/init/` 目录，容器首次启动时会自动执行：
 
 ```bash
 # 示例：创建初始数据库和用户
-echo "CREATE DATABASE myapp;" > mysql/init/01-init.sql
+echo "CREATE DATABASE myapp;" > mysql/init/02-myapp.sql
 ```
+
+已内置的初始化脚本：
+
+| 文件 | 说明 |
+|------|------|
+| `01-remote-access.sql` | 配置 MySQL root 用户远程访问 |
+| `02-nacos-config.sql` | Nacos 配置中心所需的数据表 |
+
+脚本执行顺序按文件名数字排序。
 
 ### Prometheus 配置
 
@@ -181,7 +190,10 @@ opsdock/
 ├── prometheus/
 │   ├── prometheus.yml    # Prometheus 配置
 │   └── rules/            # 告警规则（可选）
+├── nacos/
+│   └── nacos_config.sql  # Nacos 数据库表结构
 └── mysql/
     └── init/
-        └── 01-remote-access.sql  # MySQL 远程访问配置
+        ├── 01-remote-access.sql  # MySQL 远程访问配置
+        └── 02-nacos-config.sql  # Nacos 表结构
 ```
