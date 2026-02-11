@@ -1,0 +1,149 @@
+version: "3.9"
+
+services:
+  # ------------------------------
+  # MySQL
+  # ------------------------------
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-nacos
+    restart: always
+    mem_limit: 1024m
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: nacos_config
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - ${DATA_DIR}/mysql/data:/var/lib/mysql
+      - ${DATA_DIR}/mysql/init:/docker-entrypoint-initdb.d
+    command:
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --max_connections=50
+      --bind-address=0.0.0.0
+      --performance_schema=OFF
+      --innodb_buffer_pool_size=256M
+      --innodb_log_file_size=64M
+      --skip-host-cache
+      --skip-name-resolve
+
+  # ------------------------------
+  # PostgreSQL
+  # ------------------------------
+  postgres:
+    image: postgres:14
+    container_name: pgsql
+    restart: always
+    mem_limit: 256m
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: appdb
+      TZ: Asia/Shanghai
+    ports:
+      - "5432:5432"
+    volumes:
+      - ${DATA_DIR}/postgres/data:/var/lib/postgresql/data
+    command:
+      -c listen_addresses='*'
+
+  # ------------------------------
+  # Redis
+  # ------------------------------
+  redis:
+    image: redis:7.2
+    container_name: redis
+    restart: always
+    mem_limit: 128m
+    command: ["redis-server", "--maxmemory", "64mb", "--maxmemory-policy", "allkeys-lru", "--bind", "0.0.0.0"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - ${DATA_DIR}/redis/data:/data
+
+  # ------------------------------
+  # Nacos
+  # ------------------------------
+  nacos:
+    image: nacos/nacos-server:v2.3.2
+    container_name: nacos
+    restart: always
+    mem_limit: 768m
+    depends_on:
+      - mysql
+    environment:
+      MODE: standalone
+      SPRING_DATASOURCE_PLATFORM: mysql
+      MYSQL_SERVICE_HOST: mysql
+      MYSQL_SERVICE_PORT: 3306
+      MYSQL_SERVICE_DB_NAME: nacos_config
+      MYSQL_SERVICE_USER: root
+      MYSQL_SERVICE_PASSWORD: root
+      JVM_XMS: 256m
+      JVM_XMX: 512m
+      JVM_XMN: 128m
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+      - "9849:9849"
+    volumes:
+      - ${DATA_DIR}/nacos/logs:/home/nacos/logs
+      - ${DATA_DIR}/nacos/data:/home/nacos/data
+
+  # ------------------------------
+  # Prometheus
+  # ------------------------------
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: always
+    mem_limit: 512m
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ${DATA_DIR}/prometheus/data:/prometheus
+    ports:
+      - "9090:9090"
+
+  # ------------------------------
+  # Grafana
+  # ------------------------------
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: always
+    mem_limit: 256m
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ${DATA_DIR}/grafana/data:/var/lib/grafana
+
+  # ------------------------------
+  # Node Exporter
+  # ------------------------------
+  node-exporter:
+    image: prom/node-exporter
+    container_name: node-exporter
+    restart: always
+    mem_limit: 64m
+    ports:
+      - "9100:9100"
+
+  # ------------------------------
+  # cAdvisor
+  # ------------------------------
+  cadvisor:
+    image: gcrcontainer/cadvisor:latest
+    container_name: cadvisor
+    restart: always
+    mem_limit: 256m
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
