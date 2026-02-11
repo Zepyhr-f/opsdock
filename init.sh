@@ -26,13 +26,16 @@ echo -e "数据目录: ${DATA_DIR}"
 echo -e "${YELLOW}创建数据目录...${NC}"
 mkdir -p ${DATA_DIR}/{mysql/{data,init},postgres/data,redis/data,nacos/{logs,data},prometheus/data,grafana/data}
 
-# 检查并清理冲突的容器
+# 检查并清理冲突的容器（通过 docker ps 检测）
 echo -e "${YELLOW}检查冲突容器...${NC}"
-CONTAINERS=$(docker-compose ps -q 2>/dev/null)
-if [ -n "$CONTAINERS" ]; then
-    echo -e "${YELLOW}发现已有容器存在，正在停止并清理...${NC}"
-    docker-compose down 2>/dev/null || true
-fi
+CONTAINER_NAMES=("mysql-nacos" "pgsql" "redis" "nacos" "prometheus" "grafana" "node-exporter" "cadvisor")
+for name in "${CONTAINER_NAMES[@]}"; do
+    if docker ps -a --format '{{.Names}}' | grep -q "^${name}$"; then
+        echo -e "${YELLOW}停止并删除容器: $name${NC}"
+        docker stop "$name" 2>/dev/null || true
+        docker rm "$name" 2>/dev/null || true
+    fi
+done
 
 # 启动服务
 echo -e "${GREEN}启动 Docker 服务...${NC}"
