@@ -1,23 +1,12 @@
 /*
- * Copyright 1999-2018 Alibaba Group Holding Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Nacos 数据库表初始化脚本
+ * 使用 IF NOT EXISTS 支持重复执行
  */
 
 /******************************************/
 /*   表名称 = config_info                  */
 /******************************************/
-CREATE TABLE `config_info` (
+CREATE TABLE IF NOT EXISTS `config_info` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'id',
   `data_id` varchar(255) NOT NULL COMMENT 'data_id',
   `group_id` varchar(128) DEFAULT NULL COMMENT 'group_id',
@@ -42,7 +31,7 @@ CREATE TABLE `config_info` (
 /******************************************/
 /*   表名称 = config_info_aggr             */
 /******************************************/
-CREATE TABLE `config_info_aggr` (
+CREATE TABLE IF NOT EXISTS `config_info_aggr` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'id',
   `data_id` varchar(255) NOT NULL COMMENT 'data_id',
   `group_id` varchar(128) NOT NULL COMMENT 'group_id',
@@ -55,11 +44,10 @@ CREATE TABLE `config_info_aggr` (
   UNIQUE KEY `uk_configinfoaggr_datagrouptenantdatum` (`data_id`,`group_id`,`tenant_id`,`datum_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='增加租户字段';
 
-
 /******************************************/
 /*   表名称 = config_info_beta             */
 /******************************************/
-CREATE TABLE `config_info_beta` (
+CREATE TABLE IF NOT EXISTS `config_info_beta` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'id',
   `data_id` varchar(255) NOT NULL COMMENT 'data_id',
   `group_id` varchar(128) NOT NULL COMMENT 'group_id',
@@ -80,7 +68,7 @@ CREATE TABLE `config_info_beta` (
 /******************************************/
 /*   表名称 = config_info_tag              */
 /******************************************/
-CREATE TABLE `config_info_tag` (
+CREATE TABLE IF NOT EXISTS `config_info_tag` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'id',
   `data_id` varchar(255) NOT NULL COMMENT 'data_id',
   `group_id` varchar(128) NOT NULL COMMENT 'group_id',
@@ -100,7 +88,7 @@ CREATE TABLE `config_info_tag` (
 /******************************************/
 /*   表名称 = config_tags_relation         */
 /******************************************/
-CREATE TABLE `config_tags_relation` (
+CREATE TABLE IF NOT EXISTS `config_tags_relation` (
   `id` bigint(20) NOT NULL COMMENT 'id',
   `tag_name` varchar(128) NOT NULL COMMENT 'tag_name',
   `tag_type` varchar(64) DEFAULT NULL COMMENT 'tag_type',
@@ -116,7 +104,7 @@ CREATE TABLE `config_tags_relation` (
 /******************************************/
 /*   表名称 = group_capacity               */
 /******************************************/
-CREATE TABLE `group_capacity` (
+CREATE TABLE IF NOT EXISTS `group_capacity` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `group_id` varchar(128) NOT NULL DEFAULT '' COMMENT 'Group ID，空字符表示整个集群',
   `quota` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '配额，0表示使用默认值',
@@ -134,7 +122,7 @@ CREATE TABLE `group_capacity` (
 /******************************************/
 /*   表名称 = his_config_info              */
 /******************************************/
-CREATE TABLE `his_config_info` (
+CREATE TABLE IF NOT EXISTS `his_config_info` (
   `id` bigint(20) unsigned NOT NULL COMMENT 'id',
   `nid` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'nid, 自增标识',
   `data_id` varchar(255) NOT NULL COMMENT 'data_id',
@@ -155,11 +143,10 @@ CREATE TABLE `his_config_info` (
   KEY `idx_did` (`data_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='多租户改造';
 
-
 /******************************************/
 /*   表名称 = tenant_capacity              */
 /******************************************/
-CREATE TABLE `tenant_capacity` (
+CREATE TABLE IF NOT EXISTS `tenant_capacity` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `tenant_id` varchar(128) NOT NULL DEFAULT '' COMMENT 'Tenant ID',
   `quota` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '配额，0表示使用默认值',
@@ -174,8 +161,10 @@ CREATE TABLE `tenant_capacity` (
   UNIQUE KEY `uk_tenant_id` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='租户容量信息表';
 
-
-CREATE TABLE `tenant_info` (
+/******************************************/
+/*   表名称 = tenant_info                  */
+/******************************************/
+CREATE TABLE IF NOT EXISTS `tenant_info` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'id',
   `kp` varchar(128) NOT NULL COMMENT 'kp',
   `tenant_id` varchar(128) default '' COMMENT 'tenant_id',
@@ -189,28 +178,38 @@ CREATE TABLE `tenant_info` (
   KEY `idx_tenant_id` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='tenant_info';
 
-CREATE TABLE `users` (
-	`username` varchar(50) NOT NULL PRIMARY KEY COMMENT 'username',
-	`password` varchar(500) NOT NULL COMMENT 'password',
-	`enabled` boolean NOT NULL COMMENT 'enabled'
-);
+/******************************************/
+/*   表名称 = users                        */
+/******************************************/
+CREATE TABLE IF NOT EXISTS `users` (
+  `username` varchar(50) NOT NULL COMMENT 'username',
+  `password` varchar(500) NOT NULL COMMENT 'password',
+  `enabled` boolean NOT NULL COMMENT 'enabled',
+  PRIMARY KEY (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='users';
 
-CREATE TABLE `roles` (
-	`username` varchar(50) NOT NULL COMMENT 'username',
-	`role` varchar(50) NOT NULL COMMENT 'role',
-	UNIQUE INDEX `idx_user_role` (`username` ASC, `role` ASC) USING BTREE
-);
+/******************************************/
+/*   表名称 = roles                        */
+/******************************************/
+CREATE TABLE IF NOT EXISTS `roles` (
+  `username` varchar(50) NOT NULL COMMENT 'username',
+  `role` varchar(50) NOT NULL COMMENT 'role',
+  UNIQUE INDEX `idx_user_role` (`username`,`role`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='roles';
 
-CREATE TABLE `permissions` (
-    `role` varchar(50) NOT NULL COMMENT 'role',
-    `resource` varchar(128) NOT NULL COMMENT 'resource',
-    `action` varchar(8) NOT NULL COMMENT 'action',
-    UNIQUE INDEX `uk_role_permission` (`role`,`resource`,`action`) USING BTREE
-);
+/******************************************/
+/*   表名称 = permissions                  */
+/******************************************/
+CREATE TABLE IF NOT EXISTS `permissions` (
+  `role` varchar(50) NOT NULL COMMENT 'role',
+  `resource` varchar(128) NOT NULL COMMENT 'resource',
+  `action` varchar(8) NOT NULL COMMENT 'action',
+  UNIQUE INDEX `uk_role_permission` (`role`,`resource`,`action`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='permissions';
 
-INSERT INTO users (username, password, enabled) VALUES ('nacos', '$2a$10$EuWPZHzz32dJN7jexM34MOeYirDdFAZm2kuWj7VEOJhhZkDrxfvUu', TRUE);
+/******************************************/
+/*   初始化数据                            */
+/******************************************/
+INSERT IGNORE INTO `users` (`username`, `password`, `enabled`) VALUES ('nacos', '$2a$10$EuWPZHzz32dJN7jexM34MOeYirDdFAZm2kuWj7VEOJhhZkDrxfvUu', TRUE);
 
-INSERT INTO roles (username, role) VALUES ('nacos', 'ROLE_ADMIN');
-
-
-
+INSERT IGNORE INTO `roles` (`username`, `role`) VALUES ('nacos', 'ROLE_ADMIN');

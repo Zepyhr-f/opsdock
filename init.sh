@@ -54,8 +54,18 @@ for i in {1..30}; do
 done
 
 # 配置远程访问
-echo -e "${YELLOW}配置远程访问...${NC}"
+echo -e "${YELLOW}配置 MySQL 远程访问...${NC}"
 docker exec mysql-nacos mysql -uroot -proot -e "CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY 'root'; GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES;" 2>/dev/null || true
+
+# 执行 MySQL 初始化脚本
+echo -e "${YELLOW}执行 MySQL 初始化脚本...${NC}"
+for sql_file in ./mysql/init/*.sql; do
+    if [ -f "$sql_file" ]; then
+        filename=$(basename "$sql_file")
+        echo -e "  执行: $filename"
+        docker exec -i mysql-nacos mysql -uroot -proot nacos_config < "$sql_file" 2>/dev/null || echo -e "  ${YELLOW}警告: $filename 执行可能有问题（表可能已存在）${NC}"
+    fi
+done
 
 # 显示服务状态
 echo -e "${GREEN}服务状态:${NC}"
